@@ -24,7 +24,7 @@ date,product,quantity,price,region
 2024-01-03,Widget A,6,25.50,West
 ```
 
-# 2. Building Your First Asset Pipeline (20 minutes)
+# 2. Building Your First Asset 
 
 ```mermaid
 flowchart LR
@@ -33,7 +33,7 @@ flowchart LR
     B --> D[top_products]
 ```
 
-## Step 2.1: Create Your raw_sales assets (7 minutes)
+## Step 2.1: Create Your raw_sales assets 
 
 Create `assets.py`:
 
