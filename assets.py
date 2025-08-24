@@ -1,5 +1,5 @@
 import pandas as pd
-from dagster import asset
+from dagster import asset, asset_check, AssetCheckResult
 
 
 @asset
@@ -43,3 +43,9 @@ def top_products(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
     }).sort_values("total_revenue", ascending=False)
 
     return product_revenue.reset_index()
+
+
+
+@asset_check(asset=sales_summary)
+def sales_summary_has_data(sales_summary):
+    return AssetCheckResult(passed=len(sales_summary) > 0)
