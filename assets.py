@@ -6,3 +6,29 @@ from dagster import asset
 def raw_sales_data():
     """Load raw sales data from CSV file."""
     return pd.read_csv("sales_data.csv")
+
+
+@asset
+def clean_sales_data(raw_sales_data: pd.DataFrame) -> pd.DataFrame:
+    """Clean and validate sales data."""
+    # Remove any rows with missing values
+    cleaned = raw_sales_data.dropna()
+
+    # Add calculated fields
+    cleaned["total_revenue"] = cleaned["quantity"] * cleaned["price"]
+    cleaned["date"] = pd.to_datetime(cleaned["date"])
+
+    return cleaned
+
+
+@asset
+def sales_summary(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
+    """Create daily sales summary by region."""
+    summary = clean_sales_data.groupby(["date", "region"]).agg({
+        "quantity": "sum",
+        "total_revenue": "sum",
+        "product": "nunique"
+    }).round(2)
+
+    summary.columns = ["total_quantity", "total_revenue", "unique_products"]
+    return summary.reset_index()

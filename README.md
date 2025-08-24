@@ -33,7 +33,7 @@ flowchart LR
     B --> D[top_products]
 ```
 
-## Step 2.1: Create Your raw_sales Assets File (7 minutes)
+## Step 2.1: Create Your raw_sales assets (7 minutes)
 
 Create `assets.py`:
 
@@ -54,7 +54,7 @@ def raw_sales_data():
 - Type hints help with data contracts
 
 
-### Step 2.2: Create Your Definitions file (5 minutes)
+## Step 2.2: Create Your Definitions file (5 minutes)
 
 create `definitions.py`:`
 
@@ -65,30 +65,23 @@ import assets
 defs = Definitions(assets=load_assets_from_modules([assets]))
 ```
 
-
-
-
-
-### Step 2: Start Dagster UI (3 minutes)
+## Step 2.3: Start Dagster UI (3 minutes)
 
 ```bash
-dagster dev -f assets_definitions.py
+dagster dev -f definitions.py
 ```
 
 Open your browser to `http://localhost:3000`
 
 
 
+## Step 2.4: add clean_sales and sales_summary assets (7 minutes)
 
-### Step 1: Create Your raw_sales Assets File (7 minutes)
-
-Create `assets.py`:
+edit `assets.py`:
 
 ```python
 import pandas as pd
 from dagster import asset
-import os
-
 
 @asset
 def raw_sales_data():
@@ -127,33 +120,15 @@ def sales_summary(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
 - Each function is an **asset** - it represents data, not a task
 - Dependencies are declared through **function parameters**
 - Dagster automatically figures out execution order
-- Type hints help with data contracts
 
-### Step 2: Create Your Definitions file (5 minutes)
-
-create `assets_definitions.py`:`
-
-```python
-from dagster import Definitions, load_assets_from_modules
-import assets
-
-defs = Definitions(assets=load_assets_from_modules([assets]))
-```
-
-### Step 3: Start Dagster UI (3 minutes)
-
-```bash
-dagster dev -f assets_definitions.py
-```
-
-Open your browser to `http://localhost:3000`
+### Step 2.5: reload definitions
 
 **Explore:**
 
 - Asset graph visualization
 - See the dependencies: raw_sales_data → clean_sales_data → sales_summary
 
-### Step 4: Materialize Your Assets (5 minutes)
+### Step 2.6: Materialize Your Assets (5 minutes)
 
 In the Dagster UI:
 
