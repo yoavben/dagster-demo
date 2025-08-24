@@ -144,11 +144,12 @@ In the Dagster UI:
 - Execution logs per asset
 - Data preview (if supported)
 
-### Step 5: See the Magic (5 minutes)
+# Step 3: add top_products asset (5 minutes)
 
-#### Add a New Downstream Asset
+## 3.1 Add top_products asset as a new Downstream Asset
 
 Add this to your `assets.py`:
+this time we want to check how much we selled from each type of product globally
 
 ```python
 @asset

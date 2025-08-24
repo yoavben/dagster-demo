@@ -32,3 +32,14 @@ def sales_summary(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
 
     summary.columns = ["total_quantity", "total_revenue", "unique_products"]
     return summary.reset_index()
+
+
+@asset
+def top_products(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
+    """Find top-selling products by revenue."""
+    product_revenue = clean_sales_data.groupby("product").agg({
+        "total_revenue": "sum",
+        "quantity": "sum"
+    }).sort_values("total_revenue", ascending=False)
+
+    return product_revenue.reset_index()
