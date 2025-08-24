@@ -215,13 +215,6 @@ defs = Definitions(
 
 add metadata to raw_sales_data asset. add asset level metadata and also add metadata to the output of the asset
 
-## 6.2 reload definitions
-
-1. reload definitions
-2. click raw_sales_data asset
-3. click view in assets catalog
-4. see metadata
-
 ```python
 @asset(owners=["richard.hendricks@hooli.com", "team:data-eng"])
 def raw_sales_data():
@@ -237,6 +230,14 @@ def raw_sales_data():
         },
     )
 ```
+
+## 6.2 reload definitions
+
+1. reload definitions
+2. click raw_sales_data asset
+3. click view in assets catalog
+4. see metadata
+
 
 # 7. Exploration & Questions (5 minutes)
 
