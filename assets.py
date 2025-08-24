@@ -1,11 +1,22 @@
+import os
+
 import pandas as pd
-from dagster import asset, asset_check, AssetCheckResult
+from dagster import asset, asset_check, AssetCheckResult, Output, MetadataValue
 
 
-@asset
+@asset(owners=["richard.hendricks@hooli.com", "team:data-eng"])
 def raw_sales_data():
     """Load raw sales data from CSV file."""
-    return pd.read_csv("sales_data.csv")
+    df = pd.read_csv("sales_data.csv")
+    return Output(
+        df,
+        metadata={
+            "source_path": os.path.abspath("sales_data.csv"),
+            "row_count": len(df),
+            "columns": list(df.columns),
+            "sample": MetadataValue.md(df.head(5).to_markdown(index=False)),
+        },
+    )
 
 
 @asset
