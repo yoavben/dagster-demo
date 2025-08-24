@@ -72,7 +72,9 @@ dagster dev -f definitions.py
 
 Open your browser to `http://localhost:3000`
 
-## Step 2.4: add clean_sales and sales_summary assets (7 minutes)
+# 3. add clean_sales and sales_summary assets
+
+## Step 3.1: add clean_sales and sales_summary assets (7 minutes)
 
 edit `assets.py`:
 
@@ -119,14 +121,14 @@ def sales_summary(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
 - Dependencies are declared through **function parameters**
 - Dagster automatically figures out execution order
 
-### Step 2.5: reload definitions
+### Step 3.2: reload definitions
 
 **Explore:**
 
 - Asset graph visualization
 - See the dependencies: raw_sales_data → clean_sales_data → sales_summary
 
-### Step 2.6: Materialize Your Assets (5 minutes)
+### Step 3.3: Materialize Your Assets (5 minutes)
 
 In the Dagster UI:
 
@@ -142,9 +144,9 @@ In the Dagster UI:
 - Execution logs per asset
 - Data preview (if supported)
 
-# Step 3: add top_products asset (5 minutes)
+# Step 4: add top_products asset (5 minutes)
 
-## 3.1 Add top_products asset as a new Downstream Asset
+## 4.1 Add top_products asset as a new Downstream Asset
 
 Add this to your `assets.py`:
 this time we want to check how much we selled from each type of product globally
@@ -161,14 +163,16 @@ def top_products(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
     return product_revenue.reset_index()
 ```
 
+## 4.2 Reload Definitions
+
 1. Save the file
 2. Refresh the UI
 3. See how `top_products` automatically appears in the asset graph
 4. Materialize just the new asset
 
-# 4  Asset Checks
+# 5  Asset Checks
 
-## 4.1 add Asset Checks
+## 5.1 add Asset Checks
 
 when working with assets it is quite straight forward to add checks to ensure that the data is as expected
 in this step we will add a check to ensure that the sales_summary asset has data
@@ -184,7 +188,7 @@ def sales_summary_has_data(sales_summary):
     return AssetCheckResult(passed=len(sales_summary) > 0)
 ```
 
-## 4.2 update the definition file
+## 5.2 update the definition file
 
 note that everything we add must also be added to the definitions file
 
@@ -199,19 +203,19 @@ defs = Definitions(
 )
 ```
 
-## 4.3 reload definitions
+## 5.3 reload definitions
 
 1. reload definition
 2. materialize all assets
 3. see the check results
 
-# 5. assets metadata
+# 6. assets metadata
 
-## 5.1 add metadata to raw_sales_data
+## 6.1 add metadata to raw_sales_data
 
 add metadata to raw_sales_data asset. add asset level metadata and also add metadata to the output of the asset
 
-## 5.2 reload definitions
+## 6.2 reload definitions
 
 1. reload definitions
 2. click raw_sales_data asset
@@ -234,15 +238,15 @@ def raw_sales_data():
     )
 ```
 
-## Exploration & Questions (5 minutes)
+# 7. Exploration & Questions (5 minutes)
 
-### Things to Try:
+## 7.1 Things to Try:
 
 1. **Asset Lineage**: Click on any asset to see its upstream/downstream dependencies
 2. **Asset Details**: View metadata, execution history, and data previews
 3. **Dependency Exploration**: See how changing one asset affects others
 
-### Discussion Points:
+## 7.2 Discussion Points:
 
 **Compare to Airflow:**
 
@@ -257,16 +261,14 @@ def raw_sales_data():
 - **Easy exploration**: Browse your data like a catalog
 - **Clear dependencies**: Function parameters = data dependencies
 
-### Key Takeaways:
+## 7.3 Key Takeaways:
 
 1. **Mental shift**: From "execute these tasks in order" to "these assets depend on those assets"
 2. **Declarative**: Describe your data pipeline, don't script the execution
 3. **Lineage comes free**: No extra work to track data dependencies
 4. **Asset catalog**: Your data pipeline becomes browsable and discoverable
 
-## Next Steps (If You Want to Continue)
-
-# 4. Add Schedules
+# 8. Add Schedules (optional)
 
 add job definition:
 
@@ -308,39 +310,6 @@ defs = Definitions(
     jobs=[all_assets_job],
     schedules=[daily_schedule],
 )
-```
-
-### Add Asset Checks
-
-add asset check:
-
-```python
-
-
-from dagster import asset_check, AssetCheckResult
-
-
-@asset_check(asset=sales_summary)
-def sales_summary_has_data(sales_summary):
-    return AssetCheckResult(passed=len(sales_summary) > 0)
-```
-
-update definitions
-
-```python
-from dagster import Definitions, load_assets_from_modules, load_asset_checks_from_modules
-
-import assets
-from jobs import all_assets_job
-from schedules import daily_schedule
-
-defs = Definitions(
-    assets=load_assets_from_modules([assets]),
-    asset_checks=load_asset_checks_from_modules([assets]),
-    jobs=[all_assets_job],
-    schedules=[daily_schedule],
-)
-
 ```
 
 ## Workshop Wrap-up Questions
