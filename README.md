@@ -53,7 +53,6 @@ def raw_sales_data():
 - Each function is an **asset** - it represents data, not a task
 - Type hints help with data contracts
 
-
 ## Step 2.2: Create Your Definitions file (5 minutes)
 
 create `definitions.py`:`
@@ -73,8 +72,6 @@ dagster dev -f definitions.py
 
 Open your browser to `http://localhost:3000`
 
-
-
 ## Step 2.4: add clean_sales and sales_summary assets (7 minutes)
 
 edit `assets.py`:
@@ -82,6 +79,7 @@ edit `assets.py`:
 ```python
 import pandas as pd
 from dagster import asset
+
 
 @asset
 def raw_sales_data():
@@ -168,7 +166,6 @@ def top_products(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
 3. See how `top_products` automatically appears in the asset graph
 4. Materialize just the new asset
 
-
 # 4  Asset Checks
 
 ## 4.1 add Asset Checks
@@ -201,17 +198,41 @@ defs = Definitions(
     asset_checks=load_asset_checks_from_modules([assets]),
 )
 ```
+
 ## 4.3 reload definitions
 
 1. reload definition
 2. materialize all assets
 3. see the check results
 
+# 5. assets metadata
 
+## 5.1 add metadata to raw_sales_data
 
+add metadata to raw_sales_data asset. add asset level metadata and also add metadata to the output of the asset
+
+## 5.2 reload definitions
+
+1. reload definitions
+2. click raw_sales_data asset
+3. click view in assets catalog
+4. see metadata
+
+```python
+@asset(owners=["richard.hendricks@hooli.com", "team:data-eng"])
+def raw_sales_data():
+    """Load raw sales data from CSV file."""
+    df = pd.read_csv("sales_data.csv")
+    return Output(
+        df,
+        metadata={
+            "source_path": os.path.abspath("sales_data.csv"),
+            "row_count": len(df),
+            "columns": list(df.columns),
+            "sample": MetadataValue.md(df.head(5).to_markdown(index=False)),
+        },
+    )
 ```
-
-
 
 ## Exploration & Questions (5 minutes)
 
