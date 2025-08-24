@@ -168,6 +168,51 @@ def top_products(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
 3. See how `top_products` automatically appears in the asset graph
 4. Materialize just the new asset
 
+
+# 4  Asset Checks
+
+## 4.1 add Asset Checks
+
+when working with assets it is quite straight forward to add checks to ensure that the data is as expected
+in this step we will add a check to ensure that the sales_summary asset has data
+
+```python
+
+
+from dagster import asset_check, AssetCheckResult
+
+
+@asset_check(asset=sales_summary)
+def sales_summary_has_data(sales_summary):
+    return AssetCheckResult(passed=len(sales_summary) > 0)
+```
+
+## 4.2 update the definition file
+
+note that everything we add must also be added to the definitions file
+
+```python
+from dagster import Definitions, load_assets_from_modules, load_asset_checks_from_modules
+
+import assets
+
+defs = Definitions(
+    assets=load_assets_from_modules([assets]),
+    asset_checks=load_asset_checks_from_modules([assets]),
+)
+```
+## 4.3 reload definitions
+
+1. reload definition
+2. materialize all assets
+3. see the check results
+
+
+
+```
+
+
+
 ## Exploration & Questions (5 minutes)
 
 ### Things to Try:
@@ -200,7 +245,7 @@ def top_products(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
 
 ## Next Steps (If You Want to Continue)
 
-### Add Schedules
+# 4. Add Schedules
 
 add job definition:
 
