@@ -1,0 +1,254 @@
+# Dagster Workshop: Asset-Oriented Orchestration
+*30-minute hands-on experience*
+
+## Setup (5 minutes)
+
+### 1. Install Dagster
+```bash
+uv add dagster dagster-webserver pandas
+```
+
+### 2. Create Workshop Directory
+```bash
+mkdir dagster-workshop
+cd dagster-workshop
+```
+
+### 3. Create Sample Data
+Create a file called `sales_data.csv`:
+```csv
+date,product,quantity,price,region
+2024-01-01,Widget A,10,25.50,North
+2024-01-01,Widget B,5,40.00,South
+2024-01-02,Widget A,8,25.50,North
+2024-01-02,Widget C,12,15.75,East
+2024-01-03,Widget B,15,40.00,South
+2024-01-03,Widget A,6,25.50,West
+```
+
+## Building Your First Asset Pipeline (20 minutes)
+
+### Step 1: Create Your Assets File (7 minutes)
+Create `assets.py`:
+
+```python
+import pandas as pd
+from dagster import asset
+import os
+
+@asset
+def raw_sales_data():
+    """Load raw sales data from CSV file."""
+    return pd.read_csv("sales_data.csv")
+
+@asset
+def clean_sales_data(raw_sales_data: pd.DataFrame) -> pd.DataFrame:
+    """Clean and validate sales data."""
+    # Remove any rows with missing values
+    cleaned = raw_sales_data.dropna()
+    
+    # Add calculated fields
+    cleaned["total_revenue"] = cleaned["quantity"] * cleaned["price"]
+    cleaned["date"] = pd.to_datetime(cleaned["date"])
+    
+    return cleaned
+
+@asset
+def sales_summary(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
+    """Create daily sales summary by region."""
+    summary = clean_sales_data.groupby(["date", "region"]).agg({
+        "quantity": "sum",
+        "total_revenue": "sum",
+        "product": "nunique"
+    }).round(2)
+    
+    summary.columns = ["total_quantity", "total_revenue", "unique_products"]
+    return summary.reset_index()
+```
+
+**Key Points to Notice:**
+- Each function is an **asset** - it represents data, not a task
+- Dependencies are declared through **function parameters**
+- Dagster automatically figures out execution order
+- Type hints help with data contracts
+
+### Step 2: Create Your Definitions file (5 minutes)
+
+create `assets_definitions.py`:`
+
+```python
+from dagster import Definitions, load_assets_from_modules
+import assets
+
+defs = Definitions(assets=load_assets_from_modules([assets]))
+```
+
+
+
+### Step 3: Start Dagster UI (3 minutes)
+```bash
+dagster dev -f assets_definitions.py
+```
+
+Open your browser to `http://localhost:3000`
+
+**Explore:**
+- Asset graph visualization
+- See the dependencies: raw_sales_data → clean_sales_data → sales_summary
+
+### Step 4: Materialize Your Assets (5 minutes)
+
+In the Dagster UI:
+1. Go to the **Assets** tab
+2. Click **Materialize all**
+3. Watch the execution in real-time
+4. Explore the **Asset Details** for each asset
+
+**What You're Seeing:**
+- Asset catalog showing all your data
+- Lineage visualization
+- Execution logs per asset
+- Data preview (if supported)
+
+### Step 5: See the Magic (5 minutes)
+
+#### Add a New Downstream Asset
+Add this to your `assets.py`:
+
+```python
+@asset
+def top_products(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
+    """Find top-selling products by revenue."""
+    product_revenue = clean_sales_data.groupby("product").agg({
+        "total_revenue": "sum",
+        "quantity": "sum"
+    }).sort_values("total_revenue", ascending=False)
+    
+    return product_revenue.reset_index()
+```
+
+1. Save the file
+2. Refresh the UI
+3. See how `top_products` automatically appears in the asset graph
+4. Materialize just the new asset
+
+## Exploration & Questions (5 minutes)
+
+### Things to Try:
+1. **Asset Lineage**: Click on any asset to see its upstream/downstream dependencies
+2. **Asset Details**: View metadata, execution history, and data previews
+3. **Dependency Exploration**: See how changing one asset affects others
+
+### Discussion Points:
+
+**Compare to Airflow:**
+- How would you build this same pipeline in Airflow?
+- How many DAG files, tasks, and dependency declarations would you need?
+- How would you track which data depends on what?
+
+**Asset-Oriented Benefits:**
+- **Data-first thinking**: You define what you want, not how to get it
+- **Automatic lineage**: No manual tracking of data flow
+- **Easy exploration**: Browse your data like a catalog
+- **Clear dependencies**: Function parameters = data dependencies
+
+### Key Takeaways:
+1. **Mental shift**: From "execute these tasks in order" to "these assets depend on those assets"
+2. **Declarative**: Describe your data pipeline, don't script the execution
+3. **Lineage comes free**: No extra work to track data dependencies
+4. **Asset catalog**: Your data pipeline becomes browsable and discoverable
+
+## Next Steps (If You Want to Continue)
+
+### Add Schedules
+
+add job definition:
+
+```python
+# jobs.py
+from dagster import define_asset_job, AssetSelection
+
+all_assets_job = define_asset_job(
+    name="all_assets_job",
+    selection=AssetSelection.all(),
+    description="Materialize all assets.",
+)
+```
+
+```python
+# schedules.py
+from dagster import ScheduleDefinition
+from jobs import all_assets_job
+
+daily_schedule = ScheduleDefinition(
+    name="daily_6am",
+    cron_schedule="0 6 * * *",
+    job=all_assets_job,
+    # Optional: set your preferred timezone (defaults to instance timezone or UTC)
+    execution_timezone="UTC",
+)
+```
+update definition
+
+```python
+from dagster import Definitions, load_assets_from_modules
+import assets
+from jobs import all_assets_job
+from schedules import daily_schedule
+
+defs = Definitions(
+    assets=load_assets_from_modules([assets]),
+    jobs=[all_assets_job],
+    schedules=[daily_schedule],
+)
+```
+
+### Add Asset Checks
+
+add asset check:
+```python
+
+
+from dagster import asset_check, AssetCheckResult
+
+
+@asset_check(asset=sales_summary)
+def sales_summary_has_data(sales_summary):
+    return AssetCheckResult(passed=len(sales_summary) > 0)
+```
+update definitions
+```python
+from dagster import Definitions, load_assets_from_modules, load_asset_checks_from_modules
+
+import assets
+from jobs import all_assets_job
+from schedules import daily_schedule
+
+defs = Definitions(
+    assets=load_assets_from_modules([assets]),
+    asset_checks=load_asset_checks_from_modules([assets]),
+    jobs=[all_assets_job],
+    schedules=[daily_schedule],
+)
+
+```
+
+## Workshop Wrap-up Questions
+
+1. **How does this feel different from task-based orchestration?**
+2. **What would be challenging about adopting this approach?**
+3. **What use cases from your work would benefit from asset-oriented thinking?**
+4. **When would you still prefer Airflow or simpler tools?**
+
+---
+
+## File Structure Summary
+```
+dagster-workshop/
+├── sales_data.csv
+└── assets.py
+```
+
+**Commands to remember:**
+- `dagster dev` - Start local development server
+- Navigate to `http://localhost:3000` for UI
