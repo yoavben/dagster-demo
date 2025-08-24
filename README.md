@@ -2,7 +2,7 @@ Dagster Workshop: Asset-Oriented Orchestration
 ----------------------------------------------
 *30-minute hands-on experience*
 
-# 1. Setup (5 minutes)
+# 1. Setup 
 
 ### 1.1 Install Dagster
 
@@ -53,7 +53,7 @@ def raw_sales_data():
 - Each function is an **asset** - it represents data, not a task
 - Type hints help with data contracts
 
-## Step 2.2: Create Your Definitions file (5 minutes)
+## Step 2.2: Create Your Definitions file 
 
 create `definitions.py`:`
 
@@ -64,7 +64,7 @@ import assets
 defs = Definitions(assets=load_assets_from_modules([assets]))
 ```
 
-## Step 2.3: Start Dagster UI (3 minutes)
+## Step 2.3: Start Dagster UI 
 
 ```bash
 dagster dev -f definitions.py
@@ -74,7 +74,7 @@ Open your browser to `http://localhost:3000`
 
 # 3. add clean_sales and sales_summary assets
 
-## Step 3.1: add clean_sales and sales_summary assets (7 minutes)
+## Step 3.1: add clean_sales and sales_summary assets 
 
 edit `assets.py`:
 
@@ -128,7 +128,7 @@ def sales_summary(clean_sales_data: pd.DataFrame) -> pd.DataFrame:
 - Asset graph visualization
 - See the dependencies: raw_sales_data → clean_sales_data → sales_summary
 
-### Step 3.3: Materialize Your Assets (5 minutes)
+### Step 3.3: Materialize Your Assets 
 
 In the Dagster UI:
 
@@ -144,7 +144,7 @@ In the Dagster UI:
 - Execution logs per asset
 - Data preview (if supported)
 
-# Step 4: add top_products asset (5 minutes)
+# Step 4: add top_products asset 
 
 ## 4.1 Add top_products asset as a new Downstream Asset
 
@@ -239,7 +239,7 @@ def raw_sales_data():
 4. see metadata
 
 
-# 7. Exploration & Questions (5 minutes)
+# 7. Exploration & Questions 
 
 ## 7.1 Things to Try:
 
